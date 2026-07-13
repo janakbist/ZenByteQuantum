@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zenbyte Quantum — Research & Innovation</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ─── RESET & BASE ─── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00f0ff;
+            --primary-dim: rgba(0, 240, 255, 0.15);
+            --secondary: #7b2ffc;
+            --accent: #ff2d95;
+            --bg: #0a0a12;
+            --surface: rgba(255, 255, 255, 0.04);
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #e8edf5;
+            --text-dim: #8892b0;
+            --radius: 16px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ─── CANVAS (3D) ─── */
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            /* allow clicks to pass through to UI */;
+        }
+
+        /* ─── OVERLAY CONTENT ─── */
+        .content {
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+            /* container doesn't block, children can be clicked */;
+        }
+
+        .content * {
+            pointer-events: auto;
+        }
+
+        /* ─── GLASS CARD ─── */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 18px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(10, 10, 18, 0.92);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo .zen {
+            color: var(--text);
+        }
+        .logo .byte {
+            color: var(--primary);
+        }
+        .logo .quantum {
+            color: var(--secondary);
+            font-weight: 300;
+        }
+        .logo .badge {
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--primary-dim);
+            color: var(--primary);
+            padding: 2px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #0a0a12 !important;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 13px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+        }
+        .nav-cta::after {
+            display: none !important;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+        .hamburger span {
+            width: 28px;
+            height: 2px;
+            background: var(--text);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* ─── SECTIONS ─── */
+        section {
+            min-height: 100vh;
+            padding: 100px 40px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ─── HERO ─── */
+        #hero {
+            min-height: 100vh;
+            justify-content: center;
+            padding-top: 120px;
+            text-align: center;
+            align-items: center;
+        }
+
+        #hero .hero-badge {
+            display: inline-block;
+            background: var(--primary-dim);
+            color: var(--primary);
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            margin-bottom: 24px;
+            backdrop-filter: blur(4px);
+        }
+
+        #hero h1 {
+            font-size: clamp(48px, 10vw, 96px);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 40%, var(--secondary) 70%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            max-width: 900px;
+            margin: 0 auto 20px;
+        }
+
+        #hero .subtitle {
+            font-size: clamp(16px, 2vw, 24px);
+            color: var(--text-dim);
+            max-width: 640px;
+            margin: 0 auto 40px;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #0a0a12;
+            padding: 14px 40px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            padding: 14px 40px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.05);
+        }
+
+        /* ─── SCROLL INDICATOR ─── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-dim);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: floatDown 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator .mouse {
+            width: 24px;
+            height: 38px;
+            border: 2px solid var(--text-dim);
+            border-radius: 12px;
+            position: relative;
+        }
+        .scroll-indicator .mouse::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 3px;
+            animation: scrollWheel 2s ease-in-out infinite;
+        }
+
+        @keyframes floatDown {
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(8px);
+            }
+        }
+
+        @keyframes scrollWheel {
+            0%,
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                opacity: 0.3;
+                transform: translateX(-50%) translateY(12px);
+            }
+        }
+
+        /* ─── SECTION HEADERS ─── */
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header .tag {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--primary);
+            background: var(--primary-dim);
+            padding: 4px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-header p {
+            color: var(--text-dim);
+            max-width: 560px;
+            margin: 12px auto 0;
+            font-size: 17px;
+        }
+
+        /* ─── SERVICES GRID ─── */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+        }
+
+        .service-card {
+            padding: 32px 28px;
+            text-align: center;
+            background: var(--glass);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 0%, var(--primary-dim), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 20px 60px -20px rgba(0, 240, 255, 0.15);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-card .icon {
+            font-size: 44px;
+            margin-bottom: 16px;
+            display: block;
+            position: relative;
+        }
+
+        .service-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .service-card p {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.7;
+            position: relative;
+        }
+
+        .service-card .glow-line {
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            margin: 12px auto 16px;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        /* ─── ABOUT ─── */
+        #about {
+            gap: 40px;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .about-text p {
+            color: var(--text-dim);
+            font-size: 16px;
+            line-height: 1.9;
+            margin-bottom: 20px;
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat {
+            text-align: center;
+            background: var(--glass);
+            backdrop-filter: blur(4px);
+            padding: 20px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .stat .number {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat .label {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* ─── CONTACT ─── */
+        #contact {
+            min-height: 80vh;
+            justify-content: center;
+        }
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+
+        .contact-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .contact-info p {
+            color: var(--text-dim);
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 28px;
+        }
+
+        .contact-detail {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+            color: var(--text-dim);
+            font-size: 15px;
+        }
+
+        .contact-detail .emoji {
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--glass);
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            backdrop-filter: blur(4px);
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+            outline: none;
+        }
+
+        .contact-form input:focus,
+        .contact-form textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
+        }
+
+        .contact-form input::placeholder,
+        .contact-form textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        .contact-form textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .contact-form .btn-primary {
+            align-self: flex-start;
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        footer .footer-brand {
+            font-weight: 700;
+            color: var(--text);
+        }
+        footer .footer-brand .byte {
+            color: var(--primary);
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 14px 20px;
+            }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(10, 10, 18, 0.98);
+                backdrop-filter: blur(20px);
+                padding: 20px 30px;
+                gap: 16px;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            .nav-links.open {
+                display: flex;
+            }
+            .hamburger {
+                display: flex;
+            }
+            section {
+                padding: 80px 20px 40px;
+            }
+            #hero h1 {
+                font-size: 44px;
+            }
+            .services-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .about-stats {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+            .scroll-indicator {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            .about-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .logo {
+                font-size: 18px;
+            }
+            .logo .badge {
+                display: none;
+            }
+            #hero h1 {
+                font-size: 34px;
+            }
+        }
+
+        /* ─── UTILITY ─── */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gap-8 {
+            gap: 8px;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+
+        /* ─── ANIMATIONS ─── */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+        .fade-in:nth-child(3) {
+            transition-delay: 0.2s;
+        }
+        .fade-in:nth-child(4) {
+            transition-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── 3D CANVAS ─── -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- ─── NAV ─── -->
+    <nav id="navbar">
+        <div class="logo">
+            <span class="zen">ZEN</span><span class="byte">BYTE</span>
+            <span class="quantum">QUANTUM</span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#services">Research</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#contact" class="nav-cta">Get Started</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ─── CONTENT ─── -->
+    <div class="content">
+
+        <!-- HERO -->
+        <section id="hero">
+            <!-- <div class="hero-eyebrow">
+                <span class="dot"></span>
+                Quantum Intelligence · Neural Security
+            </div> -->
+            <h1>
+                <span class="highlight"></span><br />
+                <span class="highlight">Future of Secure</span><br />
+                <span class="highlight">Intelligence</span>
+            </h1>
+            <p class="tagline">
+                <strong>Zenbyte Quantum</strong> — pioneering the convergence of
+                <strong>Quantum Computing</strong>, <strong>AI</strong>,
+                <strong>Post‑Quantum Cryptography</strong>, and
+                <strong>Blockchain</strong>.
+            </p>
+            <p class="hero-desc">
+                We develop breakthrough technologies that redefine digital security,
+                accelerate scientific discovery, and empower organizations to thrive
+                in the quantum era. From quantum-resistant encryption to AI-driven
+                cyber defense and decentralized infrastructure — we turn cutting‑edge
+                research into real‑world innovation.
+            </p>
+            <div class="hero-actions">
+                <a href="#contact" class="btn-primary">🚀 Launch a Project</a>
+                <a href="#research" class="btn-secondary">Explore Research →</a>
+            </div>
+            <div class="scroll-indicator">
+                <span>Navigate</span>
+                <div class="mouse"></div>
+            </div>
+        </section>
+
+        <!-- SERVICES -->
+        <section id="services">
+            <div class="section-header fade-in">
+                <span class="tag">🔬 Research Pillars</span>
+                <h2>Where Innovation Meets Reality</h2>
+                <p>Four domains where we're turning impossible into inevitable.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card fade-in">
+                    <span class="icon">🔐</span>
+                    <h3>Cryptography</h3>
+                    <div class="glow-line"></div>
+                    <p>Post-quantum encryption, zero-knowledge proofs, and homomorphic encryption for the next generation of security.</p>
+                </div>
+                <div class="service-card fade-in">
+                    <span class="icon">⛓️</span>
+                    <h3>Blockchain</h3>
+                    <div class="glow-line"></div>
+                    <p>Quantum-resistant ledgers, scalable consensus, and decentralized identity systems built for the quantum age.</p>
+                </div>
+                <div class="service-card fade-in">
+                    <span class="icon">🧠</span>
+                    <h3>Artificial Intelligence</h3>
+                    <div class="glow-line"></div>
+                    <p>Quantum machine learning, neural architecture search, and AI-driven optimization for complex systems.</p>
+                </div>
+                <div class="service-card fade-in">
+                    <span class="icon">⚛️</span>
+                    <h3>Quantum Computing</h3>
+                    <div class="glow-line"></div>
+                    <p>Quantum algorithms, error correction, and hardware-agnostic quantum middleware for real-world applications.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT -->
+        <section id="about">
+            <div class="section-header fade-in">
+                <span class="tag">🧬 About Zenbyte</span>
+                <h2>Building the Quantum Future</h2>
+                <p>We're a collective of physicists, cryptographers, and engineers united by a single mission.</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-text fade-in">
+                    <h3>Where Science Meets Strategy</h3>
+                    <p>
+                        Zenbyte Quantum was founded on the belief that the quantum revolution
+                        isn't coming — it's already here. We combine deep research with
+                        applied engineering to deliver solutions that are secure, scalable,
+                        and decades ahead.
+                    </p>
+                    <p>
+                        From post-quantum cryptographic primitives to quantum-inspired AI
+                        models, our work spans the entire spectrum of next-generation
+                        computing. We partner with enterprises, governments, and research
+                        institutions to turn quantum theory into tangible advantage.
+                    </p>
+                </div>
+                <div class="about-stats fade-in">
+                    <div class="stat">
+                        <div class="number">12+</div>
+                        <div class="label">Research Papers</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">8</div>
+                        <div class="label">Active Patents</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">4</div>
+                        <div class="label">Core Domains</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">∞</div>
+                        <div class="label">Possibilities</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">100%</div>
+                        <div class="label">Quantum-First</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">2030</div>
+                        <div class="label">Vision Horizon</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact">
+            <div class="section-header fade-in">
+                <span class="tag">📡 Connect</span>
+                <h2>Let's Build Together</h2>
+                <p>Have a challenge? A partnership? A wild quantum idea? We're listening.</p>
+            </div>
+            <div class="contact-wrapper">
+                <div class="contact-info fade-in">
+                    <h3>Reach Out</h3>
+                    <p>
+                        Whether you're a researcher, enterprise, or investor — we'd love
+                        to hear from you. Our team is ready to explore how quantum can
+                        transform your world.
+                    </p>
+                    <div class="contact-detail">
+                        <span class="emoji">📧</span>
+                        <span>hello@zenbytequantum.io</span>
+                    </div>
+                    <div class="contact-detail">
+                        <span class="emoji">📍</span>
+                        <span>Romeoville, Illinois, Lewis University</span>
+                    </div>
+                    <div class="contact-detail">
+                        <span class="emoji">🐦</span>
+                        <span>@zenbyte_quantum</span>
+                    </div>
+                </div>
+                <form class="contact-form fade-in" id="contactForm">
+                    <input type="text" placeholder="Your name" required />
+                    <input type="email" placeholder="Your email" required />
+                    <input type="text" placeholder="Subject" />
+                    <textarea placeholder="Tell us about your quantum vision…" required></textarea>
+                    <button type="submit" class="btn-primary">Send Message →</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p>
+                <span class="footer-brand">ZEN<span class="byte">BYTE</span> QUANTUM</span>
+                &nbsp;·&nbsp; Research &amp; Innovation in Cryptography, Blockchain, AI &amp; Quantum Computing
+                <br />
+                © 2026 — Built at the intersection of imagination and physics.
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- ─── THREE.JS ─── -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <script>
+        // ─── 3D SCENE ───
+        (function init3D() {
+            const canvas = document.getElementById('three-canvas');
+            const scene = new THREE.Scene();
+
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 18);
+
+            const renderer = new THREE.WebGLRenderer({
+                canvas,
+                alpha: true,
+                antialias: true,
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // ── Lights ──
+            const ambient = new THREE.AmbientLight(0x222244, 0.4);
+            scene.add(ambient);
+
+            const dirLight = new THREE.DirectionalLight(0x00f0ff, 0.8);
+            dirLight.position.set(1, 2, 4);
+            scene.add(dirLight);
+
+            const dirLight2 = new THREE.DirectionalLight(0x7b2ffc, 0.6);
+            dirLight2.position.set(-2, -1, 3);
+            scene.add(dirLight2);
+
+            const pointLight = new THREE.PointLight(0xff2d95, 0.3, 30);
+            pointLight.position.set(2, -1, 4);
+            scene.add(pointLight);
+
+            // ── Central Object: Torus Knot ──
+            const knotGeo = new THREE.TorusKnotGeometry(1.8, 0.6, 180, 24);
+            const knotMat = new THREE.MeshPhysicalMaterial({
+                color: 0x00f0ff,
+                emissive: 0x00f0ff,
+                emissiveIntensity: 0.15,
+                metalness: 0.7,
+                roughness: 0.2,
+                wireframe: false,
+                transparent: true,
+                opacity: 0.92,
+                clearcoat: 0.4,
+                clearcoatRoughness: 0.2,
+            });
+            const knot = new THREE.Mesh(knotGeo, knotMat);
+            knot.position.y = 0.2;
+            scene.add(knot);
+
+            // ── Inner wireframe glow ──
+            const wireGeo = new THREE.TorusKnotGeometry(1.82, 0.62, 120, 16);
+            const wireMat = new THREE.MeshBasicMaterial({
+                color: 0x7b2ffc,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15,
+            });
+            const wireKnot = new THREE.Mesh(wireGeo, wireMat);
+            wireKnot.position.y = 0.2;
+            scene.add(wireKnot);
+
+            // ── Orbiting particles (quantum dots) ──
+            const particleCount = 1200;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const sizes = new Float32Array(particleCount);
+            const velocities = [];
+
+            const colorPalette = [
+                new THREE.Color(0x00f0ff),
+                new THREE.Color(0x7b2ffc),
+                new THREE.Color(0xff2d95),
+                new THREE.Color(0xffffff),
+            ];
+
+            for (let i = 0; i < particleCount; i++) {
+                const radius = 3 + Math.random() * 8;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.6;
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+
+                const col = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                colors[i * 3] = col.r;
+                colors[i * 3 + 1] = col.g;
+                colors[i * 3 + 2] = col.b;
+
+                sizes[i] = 0.03 + Math.random() * 0.08;
+                velocities.push({
+                    theta: (Math.random() - 0.5) * 0.004,
+                    phi: (Math.random() - 0.5) * 0.004,
+                    radius: radius,
+                    baseRadius: radius,
+                    phase: Math.random() * Math.PI * 2,
+                });
+            }
+
+            const particleGeo = new THREE.BufferGeometry();
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particleGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const particleMat = new THREE.PointsMaterial({
+                size: 0.08,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.7,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true,
+            });
+            const particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
+
+            // ── Connecting lines (entanglement effect) ──
+            const linePositions = [];
+            const lineColors = [];
+            const lineGeo = new THREE.BufferGeometry();
+            const lineMat = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.15,
+                blending: THREE.AdditiveBlending,
+            });
+            const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
+            scene.add(lineMesh);
+
+            function updateLines() {
+                const pos = particles.geometry.attributes.position.array;
+                const count = pos.length / 3;
+                const pairs = [];
+                const maxDist = 2.8;
+
+                // sample a subset for performance
+                const sampleSize = Math.min(count, 200);
+                const indices = [];
+                for (let i = 0; i < sampleSize; i++) {
+                    indices.push(Math.floor(Math.random() * count));
+                }
+
+                for (let i = 0; i < indices.length; i++) {
+                    for (let j = i + 1; j < indices.length; j++) {
+                        const i1 = indices[i];
+                        const i2 = indices[j];
+                        const dx = pos[i1 * 3] - pos[i2 * 3];
+                        const dy = pos[i1 * 3 + 1] - pos[i2 * 3 + 1];
+                        const dz = pos[i1 * 3 + 2] - pos[i2 * 3 + 2];
+                        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                        if (dist < maxDist && dist > 0.2) {
+                            pairs.push(i1, i2);
+                        }
+                    }
+                }
+
+                const linePos = [];
+                const lineCol = [];
+                for (let k = 0; k < pairs.length; k += 2) {
+                    const i1 = pairs[k];
+                    const i2 = pairs[k + 1];
+                    const p1x = pos[i1 * 3],
+                        p1y = pos[i1 * 3 + 1],
+                        p1z = pos[i1 * 3 + 2];
+                    const p2x = pos[i2 * 3],
+                        p2y = pos[i2 * 3 + 1],
+                        p2z = pos[i2 * 3 + 2];
+                    const c1 = new THREE.Color(0x00f0ff);
+                    const c2 = new THREE.Color(0x7b2ffc);
+                    linePos.push(p1x, p1y, p1z, p2x, p2y, p2z);
+                    lineCol.push(c1.r, c1.g, c1.b, c2.r, c2.g, c2.b);
+                }
+
+                lineMesh.geometry.dispose();
+                const newGeo = new THREE.BufferGeometry();
+                newGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
+                newGeo.setAttribute('color', new THREE.Float32BufferAttribute(lineCol, 3));
+                lineMesh.geometry = newGeo;
+            }
+
+            // ── Mouse tracking for parallax ──
+            let mouseX = 0,
+                mouseY = 0;
+            let targetX = 0,
+                targetY = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            // ── Resize ──
+            window.addEventListener('resize', () => {
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            });
+
+            // ── Animation Loop ──
+            let time = 0;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                time += 0.004;
+
+                // Smooth mouse follow
+                targetX += (mouseX - targetX) * 0.04;
+                targetY += (mouseY - targetY) * 0.04;
+
+                // Rotate knot
+                knot.rotation.x += 0.002 + targetY * 0.002;
+                knot.rotation.y += 0.005 + targetX * 0.003;
+                knot.rotation.z += 0.001;
+                wireKnot.rotation.copy(knot.rotation);
+
+                // Pulse emissive
+                const pulse = 0.12 + 0.06 * Math.sin(time * 1.2);
+                knotMat.emissiveIntensity = pulse;
+
+                // Animate particles
+                const pos = particles.geometry.attributes.position.array;
+                for (let i = 0; i < particleCount; i++) {
+                    const v = velocities[i];
+                    v.theta += 0.001 * Math.sin(time * 0.5 + v.phase);
+                    v.phi += 0.0008 * Math.cos(time * 0.4 + v.phase);
+                    const r = v.baseRadius + 0.3 * Math.sin(time * 0.6 + v.phase);
+                    const theta = v.theta + time * 0.08;
+                    const phi = v.phi + time * 0.04;
+
+                    pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                    pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.6;
+                    pos[i * 3 + 2] = r * Math.cos(phi);
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+
+                // Update lines every few frames
+                if (Math.floor(time * 10) % 2 === 0) {
+                    updateLines();
+                }
+
+                // Camera slight movement
+                camera.position.x = targetX * 0.4;
+                camera.position.y = -targetY * 0.3 + 0.2;
+                camera.lookAt(0, 0.2, 0);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Initial line update
+            setTimeout(updateLines, 200);
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                renderer.dispose();
+            });
+        })();
+
+        // ─── UI INTERACTIONS ───
+
+        // Nav scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 60) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Hamburger
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+        });
+
+        // Close nav on link click (mobile)
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+            });
+        });
+
+        // ─── SCROLL REVEAL (Intersection Observer) ───
+        const fadeEls = document.querySelectorAll('.fade-in');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -40px 0px',
+        });
+
+        fadeEls.forEach(el => observer.observe(el));
+
+        // ─── CONTACT FORM ───
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('.btn-primary');
+            const original = btn.textContent;
+            btn.textContent = '✅ Sent!';
+            btn.style.background = 'linear-gradient(135deg, #00c853, #00e676)';
+            setTimeout(() => {
+                btn.textContent = original;
+                btn.style.background = '';
+                e.target.reset();
+            }, 2500);
+        });
+    </script>
+</body>
+</html>
